@@ -1,0 +1,152 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: crm_impa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crm_impa
+      POSTGRES_PASSWORD: crm_impa_2026
+      POSTGRES_DB: crm_impa_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm_impa -d crm_impa_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: crm_impa_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: crm_impa_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: crm_impa_backend
+    restart: unless-stopped
+    ports:
+      - "3333:3333"
+    environment:
+      NODE_ENV: development
+      PORT: 3333
+      FRONTEND_URL: http://localhost:5454
+      BACKEND_URL: http://localhost:3333
+      DATABASE_URL: postgresql://crm_impa:crm_impa_2026@postgres:5432/crm_impa_db?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: crm-impa-dev-secret-key-local-2026
+      JWT_EXPIRES_IN: 7d
+      # Field-level encryption — KEK (256 bits hex). Em produção, usar valor único e guardar em Vault/KMS.
+      ENCRYPTION_KEK: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+      BAILEYS_SESSIONS_PATH: ./sessions
+      # URL interna para webhook (Docker-to-Docker, usado pela Evolution Go)
+      BACKEND_INTERNAL_URL: "http://crm_impa_backend:3333"
+      # Evo Go — preencha para habilitar modo automático (opcional)
+      EVO_GO_API_URL: "http://evogo-app:4000"
+      EVO_GO_GLOBAL_API_KEY: "evolution-go-dev-key-2024"
+      # AI Providers — preencha com suas chaves de API
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      # Qdrant — banco vetorial para RAG
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: "${QDRANT_API_KEY:-}"
+      # Docling — microserviço de parsing de documentos
+      DOCLING_SERVICE_URL: http://docling:8000
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - backend_sessions:/app/sessions
+      - backend_uploads:/app/uploads
+      - backend_ai_workspace:/app/ai-workspace
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - default
+      - evogo_network
+
+  docling:
+    build:
+      context: ./docling-service
+      dockerfile: Dockerfile
+    container_name: crm_impa_docling
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      WORKERS: 2
+      MAX_FILE_SIZE_MB: 100
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: crm_impa_frontend
+    restart: unless-stopped
+    ports:
+      - "5454:5454"
+    environment:
+      VITE_API_URL: http://localhost:3333
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+  backend_sessions:
+  backend_uploads:
+  backend_ai_workspace:
+
+networks:
+  default:
+  evogo_network:
+    external: true
+    name: evolution-go_evogo_network

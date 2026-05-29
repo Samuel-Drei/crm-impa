@@ -1,0 +1,395 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Premium Light Theme — Slate-Teal palette */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 12%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 18% 95%;
+    --secondary-foreground: 215 25% 20%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 14% 46%;
+    --accent: 210 18% 95%;
+    --accent-foreground: 215 25% 20%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 20% 91%;
+    --input: 214 20% 91%;
+    --ring: 160 84% 39%;
+    --radius: 0.625rem;
+    --surface: 210 18% 96%;
+    --surface-raised: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
+
+    /* WhatsApp Chat theme - Light */
+    --chat-bg: #eae6df;
+    --chat-sidebar: #ffffff;
+    --chat-sidebar-hover: #f0f2f5;
+    --chat-sidebar-active: #e9edef;
+    --chat-header: #f0f2f5;
+    --chat-input-bg: #ffffff;
+    --chat-input-field: #f0f2f5;
+    --chat-bubble-out: #d9fdd3;
+    --chat-bubble-in: #ffffff;
+    --chat-bubble-out-darker: #c8edc0;
+    --chat-bubble-in-hover: #f5f6f6;
+    --chat-text-primary: #111b21;
+    --chat-text-secondary: #667781;
+    --chat-text-bubble: #111b21;
+    --chat-border: #e9edef;
+    --chat-border-strong: #d1d7db;
+    --chat-accent: #00a884;
+    --chat-accent-hover: #008f72;
+    --chat-date-bg: #ffffff;
+    --chat-date-text: #667781;
+    --chat-search-bg: #f0f2f5;
+    --chat-unread-badge: #25d366;
+    --chat-unread-badge-text: #ffffff;
+    --chat-quoted-bg-out: #c4e8ba;
+    --chat-quoted-bg-in: #f0f0f0;
+    --chat-quoted-border-out: #25d366;
+    --chat-quoted-border-in: #6b7280;
+    --chat-unread-divider-bg: #d2f5e3;
+    --chat-unread-divider-text: #00a884;
+    --chat-unread-divider-border: #00a884;
+    --chat-tick: #667781;
+    --chat-tick-read: #53bdeb;
+    --chat-link: #027eb5;
+    --chat-status-dot-open: #00a884;
+    --chat-status-dot-pending: #f5a623;
+    --chat-status-dot-snoozed: #53bdeb;
+    --chat-status-dot-closed: #667781;
+    --chat-scrollbtn: #ffffff;
+    --chat-scrollbtn-text: #667781;
+    --chat-dropdown-bg: #ffffff;
+    --chat-dropdown-hover: #f0f2f5;
+    --chat-dropdown-border: #e9edef;
+    --chat-tail-out: #d9fdd3;
+    --chat-tail-in: #ffffff;
+    --chat-media-overlay: rgba(0,0,0,0.3);
+    --chat-recording-bg: #f0f2f5;
+    --chat-preview-bg: #e2ddd5;
+    --chat-filter-active-bg: rgba(0,168,132,0.12);
+    --chat-panel-bg: #f0f2f5;
+    --chat-panel-section: #ffffff;
+    --chat-lightbox-bg: rgba(0,0,0,0.85);
+  }
+
+  .dark {
+    /* Premium Dark Theme — Deep slate with teal accents */
+    color-scheme: dark;
+    --background: 220 20% 7%;
+    --foreground: 210 30% 94%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 30% 94%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 30% 94%;
+    --primary: 160 72% 47%;
+    --primary-foreground: 220 20% 7%;
+    --secondary: 218 20% 15%;
+    --secondary-foreground: 210 30% 94%;
+    --muted: 218 20% 15%;
+    --muted-foreground: 215 16% 57%;
+    --accent: 218 20% 15%;
+    --accent-foreground: 210 30% 94%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 30% 94%;
+    --border: 218 16% 16%;
+    --input: 218 16% 16%;
+    --ring: 160 72% 47%;
+    --surface: 220 18% 9%;
+    --surface-raised: 220 18% 12%;
+    --surface-overlay: 220 18% 13%;
+
+    /* WhatsApp Chat theme - Dark */
+    --chat-bg: #0b141a;
+    --chat-sidebar: #111b21;
+    --chat-sidebar-hover: #202c33;
+    --chat-sidebar-active: #2a3942;
+    --chat-header: #202c33;
+    --chat-input-bg: #202c33;
+    --chat-input-field: #2a3942;
+    --chat-bubble-out: #005c4b;
+    --chat-bubble-in: #202c33;
+    --chat-bubble-out-darker: #025144;
+    --chat-bubble-in-hover: #2a3942;
+    --chat-text-primary: #e9edef;
+    --chat-text-secondary: #8696a0;
+    --chat-text-bubble: #e9edef;
+    --chat-border: #2a3942;
+    --chat-border-strong: #374045;
+    --chat-accent: #00a884;
+    --chat-accent-hover: #06cf9c;
+    --chat-date-bg: #182229;
+    --chat-date-text: #8696a0;
+    --chat-search-bg: #2a3942;
+    --chat-unread-badge: #00a884;
+    --chat-unread-badge-text: #111b21;
+    --chat-quoted-bg-out: #025144;
+    --chat-quoted-bg-in: #1d2b33;
+    --chat-quoted-border-out: #06cf9c;
+    --chat-quoted-border-in: #374045;
+    --chat-unread-divider-bg: #0b3636;
+    --chat-unread-divider-text: #25d366;
+    --chat-unread-divider-border: rgba(0,168,132,0.4);
+    --chat-tick: #8696a0;
+    --chat-tick-read: #53bdeb;
+    --chat-link: #53bdeb;
+    --chat-status-dot-open: #00a884;
+    --chat-status-dot-pending: #f5a623;
+    --chat-status-dot-snoozed: #53bdeb;
+    --chat-status-dot-closed: #667781;
+    --chat-scrollbtn: #202c33;
+    --chat-scrollbtn-text: #8696a0;
+    --chat-dropdown-bg: #2a3942;
+    --chat-dropdown-hover: #374045;
+    --chat-dropdown-border: #374045;
+    --chat-tail-out: #005c4b;
+    --chat-tail-in: #202c33;
+    --chat-media-overlay: rgba(0,0,0,0.6);
+    --chat-recording-bg: #1d2b33;
+    --chat-preview-bg: #111b21;
+    --chat-filter-active-bg: rgba(0,168,132,0.15);
+    --chat-panel-bg: #111b21;
+    --chat-panel-section: #202c33;
+    --chat-lightbox-bg: rgba(0,0,0,0.9);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Smooth transitions on interactive elements */
+  button, a, input, select, textarea, [role="button"] {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+  /* Better focus rings */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring/40 ring-offset-2 ring-offset-background;
+  }
+  /* Refined headings */
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+    letter-spacing: -0.015em;
+  }
+  h1 { @apply text-2xl font-semibold; }
+  h2 { @apply text-xl font-semibold; }
+  h3 { @apply text-lg font-medium; }
+}
+
+/* ReactFlow custom cursors - hand with black outline for visibility */
+.react-flow__pane {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath d='M10 2a2 2 0 0 1 2 2v6.5a.5.5 0 0 0 1 0V5a2 2 0 1 1 4 0v5.5a.5.5 0 0 0 1 0V7a2 2 0 1 1 4 0v9a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8V8a2 2 0 1 1 4 0v2.5a.5.5 0 0 0 1 0V4a2 2 0 0 1 2-2z' fill='white' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 10 10, grab;
+}
+.react-flow__pane.dragging,
+.react-flow__pane:active {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath d='M10 4a2 2 0 0 1 4 0v6h2V6a2 2 0 1 1 4 0v8h2V9a2 2 0 1 1 4 0v7a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8v-4a2 2 0 1 1 4 0v2h2V4z' fill='white' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 10 10, grabbing;
+}
+
+/* Force default cursor on panels, dialogs and inputs over ReactFlow */
+.react-flow ~ div,
+[role="dialog"],
+[data-radix-popper-content-wrapper] {
+  cursor: default;
+}
+.react-flow ~ div input,
+.react-flow ~ div textarea,
+.react-flow ~ div select,
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select {
+  cursor: text;
+  caret-color: #000;
+}
+
+@keyframes flow-execution-node-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes flow-execution-node-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes flow-execution-edge-dash {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+.react-flow__node.flow-execution-node-current,
+.react-flow__node.flow-execution-node-waiting {
+  overflow: visible;
+}
+
+.react-flow__node.flow-execution-node-current::after,
+.react-flow__node.flow-execution-node-waiting::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 2px solid #10b981;
+  border-radius: 18px;
+  pointer-events: none;
+  animation: flow-execution-node-ring 1.4s ease-out infinite;
+}
+
+.react-flow__node.flow-execution-node-current > div,
+.react-flow__node.flow-execution-node-waiting > div {
+  border-color: #10b981 !important;
+  box-shadow: 0 14px 36px rgba(16, 185, 129, 0.24), 0 0 0 3px rgba(16, 185, 129, 0.22) !important;
+  animation: flow-execution-node-pulse 1.8s ease-in-out infinite;
+}
+
+.react-flow__node.flow-execution-node-waiting::after {
+  border-color: #f59e0b;
+}
+
+.react-flow__node.flow-execution-node-waiting > div {
+  border-color: #f59e0b !important;
+  box-shadow: 0 14px 36px rgba(245, 158, 11, 0.22), 0 0 0 3px rgba(245, 158, 11, 0.28) !important;
+}
+
+.react-flow__node.flow-execution-node-muted {
+  opacity: 0.42;
+}
+
+.react-flow__node.flow-execution-node-visited > div {
+  border-color: #10b981 !important;
+  box-shadow: 0 10px 28px rgba(16, 185, 129, 0.16), 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+}
+
+.react-flow__edge.flow-execution-edge-related:not(.flow-execution-edge-static) .react-flow__edge-path {
+  stroke: #10b981 !important;
+  stroke-width: 3px !important;
+  stroke-dasharray: 9 5 !important;
+  animation: flow-execution-edge-dash 0.9s linear infinite;
+  opacity: 1 !important;
+}
+
+.react-flow__edge.flow-execution-edge-visited .react-flow__edge-path {
+  stroke: #10b981 !important;
+  stroke-width: 3px !important;
+  opacity: 1 !important;
+}
+
+.react-flow__edge.flow-execution-edge-muted {
+  opacity: 0.24;
+}
+
+/* Scrollbar styling — minimal, refined */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/35;
+}
+
+/* Chat message area pattern background */
+.chat-pattern-bg {
+  background-color: var(--chat-bg);
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M15 5 L15 10 M25 8 L25 3 M35 12 L35 7 M45 4 L45 9 M10 18 L10 23 M20 20 L20 15 M30 22 L30 17 M40 16 L40 21 M50 19 L50 14 M5 30 L5 35 M15 33 L15 28 M25 36 L25 31 M35 29 L35 34 M45 32 L45 27 M55 35 L55 30 M10 43 L10 48 M20 45 L20 40 M30 47 L30 42 M40 41 L40 46 M50 44 L50 39 M5 55 L5 50 M15 53 L15 58 M25 56 L25 51 M35 54 L35 59 M45 57 L45 52' stroke='%23d1d7db' stroke-width='0.5' fill='none' /%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)' /%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+.dark .chat-pattern-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Cpath d='M15 5 L15 10 M25 8 L25 3 M35 12 L35 7 M45 4 L45 9 M10 18 L10 23 M20 20 L20 15 M30 22 L30 17 M40 16 L40 21 M50 19 L50 14 M5 30 L5 35 M15 33 L15 28 M25 36 L25 31 M35 29 L35 34 M45 32 L45 27 M55 35 L55 30 M10 43 L10 48 M20 45 L20 40 M30 47 L30 42 M40 41 L40 46 M50 44 L50 39 M5 55 L5 50 M15 53 L15 58 M25 56 L25 51 M35 54 L35 59 M45 57 L45 52' stroke='%23182229' stroke-width='0.5' fill='none' /%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)' /%3E%3C/svg%3E");
+}
+
+/* ── FullCalendar Theme Integration ── */
+.schedule-calendar .fc {
+  --fc-border-color: var(--border-primary);
+  --fc-today-bg-color: rgba(var(--primary-rgb, 59, 130, 246), 0.05);
+  --fc-neutral-bg-color: var(--bg-secondary);
+  --fc-page-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  font-family: inherit;
+}
+.schedule-calendar .fc .fc-toolbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.schedule-calendar .fc .fc-button {
+  background: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+.schedule-calendar .fc .fc-button:hover {
+  background: var(--bg-primary);
+}
+.schedule-calendar .fc .fc-button-active,
+.schedule-calendar .fc .fc-button:active {
+  background: hsl(var(--primary)) !important;
+  color: white !important;
+  border-color: hsl(var(--primary)) !important;
+}
+.schedule-calendar .fc .fc-col-header-cell {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.5rem 0;
+}
+.schedule-calendar .fc .fc-daygrid-day-number {
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+.schedule-calendar .fc .fc-day-today .fc-daygrid-day-number {
+  font-weight: 700;
+  color: hsl(var(--primary));
+}
+.schedule-calendar .fc .fc-event {
+  border-radius: 4px;
+  font-size: 0.7rem;
+  padding: 1px 2px;
+  cursor: pointer;
+  border: none;
+}
+.schedule-calendar .fc .fc-list-event:hover td {
+  background: var(--bg-secondary);
+}

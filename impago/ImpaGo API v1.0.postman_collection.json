@@ -1,0 +1,1829 @@
+{
+	"info": {
+		"_postman_id": "impago-api-v1-collection",
+		"name": "ImpaGo API | v1.0",
+		"description": "ImpaGo — Gateway WhatsApp independente baseado em whatsmeow.\n\nTodas as rotas requerem autenticação via header `apikey` com a Master Key.\n\n**Base URL:** `http://localhost:8080/v1`\n\n**Variáveis:**\n- `baseUrl` — URL base da API\n- `masterKey` — Chave mestra (IMPAGO_MASTER_KEY)\n- `instance` — Nome da conexão/instância",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "masterKey",
+			"value": "0edc538f642ab719",
+			"type": "string"
+		},
+		{
+			"key": "instance",
+			"value": "minha-conexao",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "apikey",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{masterKey}}",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"auth": { "type": "noauth" },
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["health"]
+				},
+				"description": "Verifica se a API está online. Não requer autenticação."
+			}
+		},
+		{
+			"name": "1. Connections (Instâncias)",
+			"description": "Gerenciamento de conexões/instâncias WhatsApp. Cada conexão representa um número de telefone.",
+			"item": [
+				{
+					"name": "Criar Conexão",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"minha-conexao\",\n  \"webhookUrl\": \"https://meu-server.com/webhook\",\n  \"events\": \"messages,messages.update,connection.update\",\n  \"alwaysOnline\": true,\n  \"rejectCalls\": false,\n  \"readMessages\": false,\n  \"ignoreGroups\": false,\n  \"ignoreStatus\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections"]
+						},
+						"description": "Cria uma nova conexão WhatsApp. Retorna o token de autenticação da instância.\n\n**Campos:**\n- `name` (obrigatório): Nome único (letras minúsculas, números, hífens)\n- `webhookUrl`: URL para receber eventos\n- `events`: Eventos a enviar (separados por vírgula)\n- `alwaysOnline`: Manter status online\n- `rejectCalls`: Rejeitar chamadas automaticamente\n- `readMessages`: Marcar mensagens como lidas\n- `ignoreGroups`: Ignorar mensagens de grupo\n- `ignoreStatus`: Ignorar status/stories"
+					}
+				},
+				{
+					"name": "Listar Conexões",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						},
+						"description": "Lista todas as conexões com paginação."
+					}
+				},
+				{
+					"name": "Buscar Conexão",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}"]
+						},
+						"description": "Retorna os dados de uma conexão específica."
+					}
+				},
+				{
+					"name": "Atualizar Conexão",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"webhookUrl\": \"https://meu-server.com/webhook-v2\",\n  \"alwaysOnline\": true,\n  \"rejectCalls\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}"]
+						},
+						"description": "Atualiza configurações de uma conexão. Envie apenas os campos que deseja alterar."
+					}
+				},
+				{
+					"name": "Deletar Conexão",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}"]
+						},
+						"description": "Remove uma conexão e todos seus dados."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Session (Sessão)",
+			"description": "Gerenciamento da sessão WhatsApp (QR Code, pareamento, conexão/desconexão).",
+			"item": [
+				{
+					"name": "Iniciar Sessão",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/start",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "start"]
+						},
+						"description": "Inicia a sessão WhatsApp. Gera QR Code se ainda não pareado."
+					}
+				},
+				{
+					"name": "Parar Sessão",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/stop",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "stop"]
+						},
+						"description": "Para a sessão WhatsApp (desconecta temporariamente)."
+					}
+				},
+				{
+					"name": "Reiniciar Sessão",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/restart",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "restart"]
+						},
+						"description": "Reinicia a sessão WhatsApp."
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "logout"]
+						},
+						"description": "Faz logout da sessão WhatsApp (remove pareamento)."
+					}
+				},
+				{
+					"name": "Status da Sessão",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "status"]
+						},
+						"description": "Retorna o status atual da sessão (connected, disconnected, qr_waiting, etc)."
+					}
+				},
+				{
+					"name": "Obter QR Code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/qrcode",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "qrcode"]
+						},
+						"description": "Retorna o QR Code atual para pareamento (base64)."
+					}
+				},
+				{
+					"name": "Parear por Número",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/session/pair",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "session", "pair"]
+						},
+						"description": "Pareia usando número de telefone (sem QR Code). Retorna um código de pareamento."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Send Message (Enviar Mensagem)",
+			"description": "Envio de mensagens de todos os tipos.",
+			"item": [
+				{
+					"name": "Enviar Texto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"text\": \"Olá! Esta é uma mensagem de teste do ImpaGo.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/text",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "text"]
+						},
+						"description": "Envia mensagem de texto simples.\n\n**Campos:**\n- `to` (obrigatório): Número com DDI (ex: 5511999999999) ou JID\n- `text` (obrigatório): Texto da mensagem"
+					}
+				},
+				{
+					"name": "Enviar Imagem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/imagem.jpg\",\n  \"caption\": \"Legenda da imagem\",\n  \"mimeType\": \"image/jpeg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/image",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "image"]
+						},
+						"description": "Envia imagem via URL.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL da imagem\n- `caption`: Legenda (opcional)\n- `mimeType`: Tipo MIME (padrão: image/jpeg)"
+					}
+				},
+				{
+					"name": "Enviar Áudio (PTT)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/audio.ogg\",\n  \"mimeType\": \"audio/ogg; codecs=opus\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/audio",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "audio"]
+						},
+						"description": "Envia áudio como mensagem de voz (PTT - Push To Talk).\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do áudio\n- `mimeType`: Tipo MIME (padrão: audio/ogg; codecs=opus)"
+					}
+				},
+				{
+					"name": "Enviar Vídeo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/video.mp4\",\n  \"caption\": \"Vídeo de exemplo\",\n  \"mimeType\": \"video/mp4\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/video",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "video"]
+						},
+						"description": "Envia vídeo via URL.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do vídeo\n- `caption`: Legenda (opcional)\n- `mimeType`: Tipo MIME (padrão: video/mp4)"
+					}
+				},
+				{
+					"name": "Enviar Documento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/documento.pdf\",\n  \"caption\": \"Documento importante\",\n  \"mimeType\": \"application/pdf\",\n  \"fileName\": \"contrato.pdf\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/document",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "document"]
+						},
+						"description": "Envia documento/arquivo via URL.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do arquivo\n- `caption`: Legenda (opcional)\n- `mimeType`: Tipo MIME (padrão: application/octet-stream)\n- `fileName`: Nome do arquivo (padrão: document)"
+					}
+				},
+				{
+					"name": "Enviar Localização",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"latitude\": -23.5505,\n  \"longitude\": -46.6333,\n  \"name\": \"São Paulo\",\n  \"address\": \"Praça da Sé, São Paulo - SP\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/location",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "location"]
+						},
+						"description": "Envia localização (coordenadas GPS).\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `latitude` (obrigatório): Latitude\n- `longitude` (obrigatório): Longitude\n- `name`: Nome do local (opcional)\n- `address`: Endereço (opcional)"
+					}
+				},
+				{
+					"name": "Enviar Contato (vCard)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"name\": \"João Silva\",\n  \"vcard\": \"BEGIN:VCARD\\nVERSION:3.0\\nFN:João Silva\\nTEL;type=CELL:+5511888888888\\nEND:VCARD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/contact",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "contact"]
+						},
+						"description": "Envia um contato no formato vCard.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `name` (obrigatório): Nome de exibição\n- `vcard` (obrigatório): String vCard completa"
+					}
+				},
+				{
+					"name": "Enviar Reação",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"messageId\": \"3EB0A0B1234567890\",\n  \"emoji\": \"👍\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/reaction",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "reaction"]
+						},
+						"description": "Adiciona uma reação (emoji) a uma mensagem.\n\n**Campos:**\n- `to` (obrigatório): Chat onde está a mensagem\n- `messageId` (obrigatório): ID da mensagem para reagir\n- `emoji` (obrigatório): Emoji da reação (envie vazio para remover)"
+					}
+				},
+				{
+					"name": "Enviar Enquete (Poll)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"name\": \"Qual a melhor linguagem?\",\n  \"options\": [\"Go\", \"Rust\", \"TypeScript\", \"Python\"],\n  \"selectableCount\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/poll",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "poll"]
+						},
+						"description": "Envia uma enquete.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `name` (obrigatório): Pergunta da enquete\n- `options` (obrigatório): Lista de opções (mínimo 2)\n- `selectableCount`: Quantas opções podem ser selecionadas (padrão: 1)"
+					}
+				},
+				{
+					"name": "Enviar Sticker",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/sticker.webp\",\n  \"mimeType\": \"image/webp\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/sticker",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "sticker"]
+						},
+						"description": "Envia um sticker (figurinha). A imagem pode ser WebP, PNG ou JPEG.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do sticker\n- `mimeType`: Tipo MIME (padrão: image/webp)"
+					}
+				},
+				{
+					"name": "Enviar Link (Preview)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://github.com\",\n  \"title\": \"GitHub\",\n  \"description\": \"Where the world builds software\",\n  \"text\": \"Confira este link: https://github.com\",\n  \"thumbUrl\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/link",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "link"]
+						},
+						"description": "Envia link com preview customizado.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do link\n- `title`: Título do preview\n- `description`: Descrição do preview\n- `text`: Texto da mensagem (se vazio, usa a URL)\n- `thumbUrl`: URL da thumbnail JPEG (opcional)"
+					}
+				},
+				{
+					"name": "Enviar Botões",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"text\": \"Escolha uma opção:\",\n  \"footer\": \"ImpaGo API\",\n  \"buttons\": [\n    { \"buttonId\": \"btn_sim\", \"displayText\": \"Sim\" },\n    { \"buttonId\": \"btn_nao\", \"displayText\": \"Não\" },\n    { \"buttonId\": \"btn_talvez\", \"displayText\": \"Talvez\" }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/button",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "button"]
+						},
+						"description": "Envia mensagem com botões de resposta rápida (máximo 3).\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `text` (obrigatório): Texto da mensagem\n- `footer`: Rodapé (opcional)\n- `buttons` (obrigatório): Array de botões\n  - `buttonId`: ID do botão (gerado automaticamente se vazio)\n  - `displayText`: Texto exibido no botão"
+					}
+				},
+				{
+					"name": "Enviar Lista",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"title\": \"Cardápio\",\n  \"text\": \"Selecione um item do cardápio:\",\n  \"footer\": \"ImpaGo API\",\n  \"buttonText\": \"Ver opções\",\n  \"sections\": [\n    {\n      \"title\": \"Pizzas\",\n      \"rows\": [\n        { \"rowId\": \"pizza_marg\", \"title\": \"Margherita\", \"description\": \"R$ 35,00\" },\n        { \"rowId\": \"pizza_cal\", \"title\": \"Calabresa\", \"description\": \"R$ 38,00\" }\n      ]\n    },\n    {\n      \"title\": \"Bebidas\",\n      \"rows\": [\n        { \"rowId\": \"beb_refri\", \"title\": \"Refrigerante\", \"description\": \"R$ 8,00\" },\n        { \"rowId\": \"beb_suco\", \"title\": \"Suco Natural\", \"description\": \"R$ 12,00\" }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/list",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "list"]
+						},
+						"description": "Envia mensagem com lista de opções.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `title`: Título da mensagem\n- `text` (obrigatório): Texto da mensagem\n- `footer`: Rodapé\n- `buttonText`: Texto do botão (padrão: \"Ver opções\")\n- `sections` (obrigatório): Seções da lista, cada uma com título e rows"
+					}
+				},
+				{
+					"name": "Encaminhar Mensagem ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"messageId\": \"3EB0A0B1234567890\",\n  \"fromChat\": \"5511888888888\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/forward",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "forward"]
+						},
+						"description": "⚠️ **STUB** — whatsmeow não tem método nativo de encaminhar.\n\nEncaminha uma mensagem existente para outro chat."
+					}
+				},
+				{
+					"name": "Enviar Status/Story",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Meu status de hoje!\",\n  \"backgroundColor\": \"#075E54\",\n  \"font\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "status"]
+						},
+						"description": "Publica um status/story no WhatsApp.\n\n**Campos:**\n- `text`: Texto do status\n- `backgroundColor`: Cor de fundo HEX\n- `font`: Fonte (0-4)"
+					}
+				},
+				{
+					"name": "Enviar Vídeo Nota (PTV)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"url\": \"https://example.com/video-curto.mp4\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/messages/ptv",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "messages", "ptv"]
+						},
+						"description": "Envia vídeo nota circular (PTV - Push To Video), como a bolinha de vídeo do WhatsApp.\n\n**Campos:**\n- `to` (obrigatório): Destinatário\n- `url` (obrigatório): URL do vídeo (curto, até 60s)"
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Chat (Gerenciamento)",
+			"description": "Operações sobre conversas: presença, leitura, fixar, arquivar, silenciar, deletar/editar mensagens.",
+			"item": [
+				{
+					"name": "Enviar Presença (Digitando)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"presence\": \"composing\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/presence",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "presence"]
+						},
+						"description": "Envia indicador de presença (digitando/gravando).\n\n**Campos:**\n- `to` (obrigatório): Chat de destino\n- `presence`: composing, paused, recording, available, unavailable"
+					}
+				},
+				{
+					"name": "Marcar como Lido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"messageIds\": [\"3EB0A0B1234567890\", \"3EB0A0B1234567891\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/mark-read",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "mark-read"]
+						},
+						"description": "Marca mensagens específicas como lidas.\n\n**Campos:**\n- `to` (obrigatório): Chat\n- `messageIds` (obrigatório): Array de IDs de mensagens"
+					}
+				},
+				{
+					"name": "Marcar como Não Lido ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/mark-unread",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "mark-unread"]
+						},
+						"description": "⚠️ **STUB** — Limitação do protocolo WhatsApp Web."
+					}
+				},
+				{
+					"name": "Download Mídia ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"messageId\": \"3EB0A0B1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/download-media",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "download-media"]
+						},
+						"description": "⚠️ **STUB** — Requer armazenamento S3, em desenvolvimento."
+					}
+				},
+				{
+					"name": "Deletar Mensagem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"messageId\": \"3EB0A0B1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/delete-message",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "delete-message"]
+						},
+						"description": "Apaga mensagem para todos.\n\n**Campos:**\n- `to` (obrigatório): Chat onde está a mensagem\n- `messageId` (obrigatório): ID da mensagem"
+					}
+				},
+				{
+					"name": "Editar Mensagem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"messageId\": \"3EB0A0B1234567890\",\n  \"text\": \"Texto corrigido da mensagem\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/edit-message",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "edit-message"]
+						},
+						"description": "Edita o texto de uma mensagem já enviada.\n\n**Campos:**\n- `to` (obrigatório): Chat\n- `messageId` (obrigatório): ID da mensagem\n- `text` (obrigatório): Novo texto"
+					}
+				},
+				{
+					"name": "Fixar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/pin",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "pin"]
+						},
+						"description": "Fixa um chat no topo da lista."
+					}
+				},
+				{
+					"name": "Desfixar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/unpin",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "unpin"]
+						},
+						"description": "Remove a fixação de um chat."
+					}
+				},
+				{
+					"name": "Arquivar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/archive",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "archive"]
+						},
+						"description": "Arquiva uma conversa."
+					}
+				},
+				{
+					"name": "Desarquivar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/unarchive",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "unarchive"]
+						},
+						"description": "Desarquiva uma conversa."
+					}
+				},
+				{
+					"name": "Silenciar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"duration\": 28800\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/mute",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "mute"]
+						},
+						"description": "Silencia notificações de um chat.\n\n**Campos:**\n- `to` (obrigatório): Chat\n- `duration`: Duração em segundos (padrão: 28800 = 8h, -1 = para sempre)"
+					}
+				},
+				{
+					"name": "Dessilenciar Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/unmute",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "unmute"]
+						},
+						"description": "Reativa notificações de um chat."
+					}
+				},
+				{
+					"name": "Sincronizar Histórico ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/chat/history-sync",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "chat", "history-sync"]
+						},
+						"description": "⚠️ **STUB** — Sincronização de histórico processada via eventos."
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Groups (Grupos)",
+			"description": "Gerenciamento de grupos WhatsApp.",
+			"item": [
+				{
+					"name": "Listar Grupos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group"]
+						},
+						"description": "Lista todos os grupos que a instância participa."
+					}
+				},
+				{
+					"name": "Info do Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/info",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "info"]
+						},
+						"description": "Retorna informações detalhadas de um grupo (participantes, admins, configurações)."
+					}
+				},
+				{
+					"name": "Criar Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Meu Novo Grupo\",\n  \"participants\": [\"5511999999999\", \"5511888888888\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "create"]
+						},
+						"description": "Cria um novo grupo.\n\n**Campos:**\n- `name` (obrigatório): Nome do grupo\n- `participants`: Lista de números para adicionar"
+					}
+				},
+				{
+					"name": "Obter Link de Convite",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/invite-link/120363012345678901@g.us",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "invite-link", "120363012345678901@g.us"]
+						},
+						"description": "Retorna o link de convite do grupo."
+					}
+				},
+				{
+					"name": "Revogar Link de Convite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/revoke-invite",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "revoke-invite"]
+						},
+						"description": "Revoga o link de convite atual e gera um novo."
+					}
+				},
+				{
+					"name": "Info por Link de Convite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"inviteCode\": \"https://chat.whatsapp.com/ABC123def\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/invite-info",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "invite-info"]
+						},
+						"description": "Obtém informações de um grupo a partir do link de convite."
+					}
+				},
+				{
+					"name": "Entrar em Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"inviteCode\": \"https://chat.whatsapp.com/ABC123def\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/join",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "join"]
+						},
+						"description": "Entra em um grupo usando o link de convite."
+					}
+				},
+				{
+					"name": "Sair do Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/leave",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "leave"]
+						},
+						"description": "Sai de um grupo."
+					}
+				},
+				{
+					"name": "Definir Foto do Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"url\": \"https://example.com/foto-grupo.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/photo",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "photo"]
+						},
+						"description": "Define a foto do grupo."
+					}
+				},
+				{
+					"name": "Alterar Nome do Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"name\": \"Novo Nome do Grupo\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/name",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "name"]
+						},
+						"description": "Altera o nome do grupo."
+					}
+				},
+				{
+					"name": "Alterar Descrição do Grupo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"description\": \"Nova descrição do grupo\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/description",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "description"]
+						},
+						"description": "Altera a descrição do grupo."
+					}
+				},
+				{
+					"name": "Gerenciar Participantes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"participants\": [\"5511999999999\", \"5511888888888\"],\n  \"action\": \"add\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/participant",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "participant"]
+						},
+						"description": "Adiciona, remove, promove ou rebaixa participantes de um grupo.\n\n**Campos:**\n- `groupJid` (obrigatório): JID do grupo\n- `participants` (obrigatório): Lista de números\n- `action` (obrigatório): add, remove, promote, demote"
+					}
+				},
+				{
+					"name": "Atualizar Configurações",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"announce\": true,\n  \"locked\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/settings",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "settings"]
+						},
+						"description": "Atualiza configurações do grupo.\n\n**Campos:**\n- `groupJid` (obrigatório): JID do grupo\n- `announce`: Só admins enviam mensagens (true/false)\n- `locked`: Só admins editam dados do grupo (true/false)"
+					}
+				},
+				{
+					"name": "Listar Solicitações de Entrada",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/requests",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "requests"]
+						},
+						"description": "Lista solicitações pendentes de entrada no grupo."
+					}
+				},
+				{
+					"name": "Aprovar/Rejeitar Solicitações",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"participants\": [\"5511999999999\"],\n  \"action\": \"approve\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/requests/action",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "requests", "action"]
+						},
+						"description": "Aprova ou rejeita solicitações de entrada.\n\n**Campos:**\n- `groupJid` (obrigatório): JID do grupo\n- `participants` (obrigatório): Lista de números\n- `action` (obrigatório): approve ou reject"
+					}
+				},
+				{
+					"name": "Ativar/Desativar Mensagens Temporárias",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupJid\": \"120363012345678901@g.us\",\n  \"duration\": 86400\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/group/ephemeral",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "group", "ephemeral"]
+						},
+						"description": "Ativa/desativa mensagens temporárias (efêmeras).\n\n**Campos:**\n- `groupJid` (obrigatório): JID do grupo\n- `duration`: Duração em segundos (0 = desativar, 86400 = 24h, 604800 = 7d, 7776000 = 90d)"
+					}
+				}
+			]
+		},
+		{
+			"name": "6. User (Perfil e Contatos)",
+			"description": "Gerenciamento de perfil, contatos, privacidade e bloqueio.",
+			"item": [
+				{
+					"name": "Verificar Números no WhatsApp",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numbers\": [\"5511999999999\", \"5511888888888\", \"5511777777777\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/check",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "check"]
+						},
+						"description": "Verifica se números estão registrados no WhatsApp (IsOnWhatsApp)."
+					}
+				},
+				{
+					"name": "Info do Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numbers\": [\"5511999999999\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/info",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "info"]
+						},
+						"description": "Obtém informações de usuários (status, foto, dispositivos)."
+					}
+				},
+				{
+					"name": "Obter Avatar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"5511999999999\",\n  \"preview\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/avatar",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "avatar"]
+						},
+						"description": "Busca a foto de perfil de um contato.\n\n**Campos:**\n- `number` (obrigatório): Número do contato\n- `preview`: true para thumbnail, false para foto completa"
+					}
+				},
+				{
+					"name": "Listar Contatos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/contacts",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "contacts"]
+						},
+						"description": "Lista todos os contatos salvos localmente."
+					}
+				},
+				{
+					"name": "Definir Foto de Perfil",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"https://example.com/minha-foto.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/profile/picture",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "profile", "picture"]
+						},
+						"description": "Define a foto de perfil da instância."
+					}
+				},
+				{
+					"name": "Remover Foto de Perfil",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/profile/picture",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "profile", "picture"]
+						},
+						"description": "Remove a foto de perfil da instância."
+					}
+				},
+				{
+					"name": "Definir Nome de Perfil",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"ImpaGo Bot\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/profile/name",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "profile", "name"]
+						},
+						"description": "Define o nome de perfil (push name) da instância."
+					}
+				},
+				{
+					"name": "Definir Recado (Status)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Disponível via ImpaGo API 🚀\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/profile/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "profile", "status"]
+						},
+						"description": "Define o recado/about do perfil."
+					}
+				},
+				{
+					"name": "Obter Configurações de Privacidade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/privacy",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "privacy"]
+						},
+						"description": "Retorna as configurações de privacidade atuais."
+					}
+				},
+				{
+					"name": "Definir Privacidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"groupAdd\": \"contacts\",\n  \"lastSeen\": \"contacts\",\n  \"status\": \"all\",\n  \"profile\": \"all\",\n  \"readReceipts\": \"all\",\n  \"online\": \"all\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/privacy",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "privacy"]
+						},
+						"description": "Define configurações de privacidade.\n\n**Valores possíveis:** all, contacts, contact_blacklist, none, match_last_seen\n\n**Campos:**\n- `groupAdd`: Quem pode adicionar em grupos\n- `lastSeen`: Quem vê \"visto por último\"\n- `status`: Quem vê seu status\n- `profile`: Quem vê foto de perfil\n- `readReceipts`: Confirmação de leitura\n- `online`: Quem vê quando está online"
+					}
+				},
+				{
+					"name": "Bloquear Contato",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/block",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "block"]
+						},
+						"description": "Bloqueia um contato."
+					}
+				},
+				{
+					"name": "Desbloquear Contato",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/unblock",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "unblock"]
+						},
+						"description": "Desbloqueia um contato."
+					}
+				},
+				{
+					"name": "Lista de Bloqueados",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/blocklist",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "blocklist"]
+						},
+						"description": "Lista todos os contatos bloqueados."
+					}
+				},
+				{
+					"name": "Perfil Comercial (Business)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/user/business-profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "user", "business-profile"]
+						},
+						"description": "Busca o perfil comercial (WhatsApp Business) de um contato."
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Label (Etiquetas)",
+			"description": "Gerenciamento de etiquetas (labels) — recurso do WhatsApp Business.",
+			"item": [
+				{
+					"name": "Listar Etiquetas ⚠️ stub",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label"]
+						},
+						"description": "⚠️ **STUB** — whatsmeow não tem método para ler labels do servidor."
+					}
+				},
+				{
+					"name": "Buscar Etiqueta por ID ⚠️ stub",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "1"]
+						},
+						"description": "⚠️ **STUB** — Dados de label individual não disponíveis via whatsmeow."
+					}
+				},
+				{
+					"name": "Chats de uma Etiqueta ⚠️ stub",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/1/chats",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "1", "chats"]
+						},
+						"description": "⚠️ **STUB** — Chats associados a labels não disponíveis via whatsmeow."
+					}
+				},
+				{
+					"name": "Editar Etiqueta",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"labelId\": 1,\n  \"name\": \"Cliente VIP\",\n  \"color\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label"]
+						},
+						"description": "Cria ou edita uma etiqueta.\n\n**Campos:**\n- `labelId` (obrigatório): ID numérico da label\n- `name` (obrigatório): Nome da etiqueta\n- `color`: ID da cor (0-19)"
+					}
+				},
+				{
+					"name": "Associar Label ao Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"labelId\": \"1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/chat",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "chat"]
+						},
+						"description": "Associa uma etiqueta a um chat."
+					}
+				},
+				{
+					"name": "Remover Label do Chat",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"labelId\": \"1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/chat",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "chat"]
+						},
+						"description": "Remove uma etiqueta de um chat."
+					}
+				},
+				{
+					"name": "Associar Label à Mensagem",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"labelId\": \"1\",\n  \"messageId\": \"3EB0A0B1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/message",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "message"]
+						},
+						"description": "Associa uma etiqueta a uma mensagem específica."
+					}
+				},
+				{
+					"name": "Remover Label da Mensagem",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"to\": \"5511999999999\",\n  \"labelId\": \"1\",\n  \"messageId\": \"3EB0A0B1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/label/message",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "label", "message"]
+						},
+						"description": "Remove uma etiqueta de uma mensagem."
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Community (Comunidades)",
+			"description": "Gerenciamento de comunidades WhatsApp.",
+			"item": [
+				{
+					"name": "Criar Comunidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Minha Comunidade\",\n  \"description\": \"Descrição da comunidade\",\n  \"groupJids\": [\"120363012345678901@g.us\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/community/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "community", "create"]
+						},
+						"description": "Cria uma nova comunidade.\n\n**Campos:**\n- `name` (obrigatório): Nome da comunidade\n- `description`: Descrição\n- `groupJids`: Lista de JIDs de grupos para vincular"
+					}
+				},
+				{
+					"name": "Adicionar Grupo à Comunidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"communityJid\": \"120363099999999999@g.us\",\n  \"groupJids\": [\"120363012345678901@g.us\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/community/add-group",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "community", "add-group"]
+						},
+						"description": "Vincula grupos existentes à comunidade."
+					}
+				},
+				{
+					"name": "Remover Grupo da Comunidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"communityJid\": \"120363099999999999@g.us\",\n  \"groupJids\": [\"120363012345678901@g.us\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/community/remove-group",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "community", "remove-group"]
+						},
+						"description": "Remove grupos da comunidade."
+					}
+				},
+				{
+					"name": "Desativar Comunidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"communityJid\": \"120363099999999999@g.us\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/community/deactivate",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "community", "deactivate"]
+						},
+						"description": "Desativa uma comunidade."
+					}
+				},
+				{
+					"name": "Info da Comunidade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/community/120363099999999999@g.us",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "community", "120363099999999999@g.us"]
+						},
+						"description": "Obtém informações de uma comunidade."
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Newsletter (Canais)",
+			"description": "Gerenciamento de newsletters/canais WhatsApp.",
+			"item": [
+				{
+					"name": "Criar Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Meu Canal\",\n  \"description\": \"Descrição do canal\",\n  \"pictureUrl\": \"https://example.com/canal-foto.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "create"]
+						},
+						"description": "Cria um novo canal/newsletter.\n\n**Campos:**\n- `name` (obrigatório): Nome do canal\n- `description`: Descrição\n- `pictureUrl`: URL da foto do canal"
+					}
+				},
+				{
+					"name": "Listar Newsletters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter"]
+						},
+						"description": "Lista todas as newsletters que a instância segue."
+					}
+				},
+				{
+					"name": "Info da Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/info",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "info"]
+						},
+						"description": "Obtém informações de uma newsletter pelo JID."
+					}
+				},
+				{
+					"name": "Info por Link de Convite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"inviteLink\": \"https://whatsapp.com/channel/ABC123def\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/invite",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "invite"]
+						},
+						"description": "Busca informações de uma newsletter pelo link de convite."
+					}
+				},
+				{
+					"name": "Seguir Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/follow",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "follow"]
+						},
+						"description": "Segue/inscreve em uma newsletter."
+					}
+				},
+				{
+					"name": "Deixar de Seguir Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/unfollow",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "unfollow"]
+						},
+						"description": "Deixa de seguir uma newsletter."
+					}
+				},
+				{
+					"name": "Mutar Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/mute",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "mute"]
+						},
+						"description": "Silencia notificações de uma newsletter."
+					}
+				},
+				{
+					"name": "Desmutar Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/unmute",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "unmute"]
+						},
+						"description": "Reativa notificações de uma newsletter."
+					}
+				},
+				{
+					"name": "Mensagens da Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\",\n  \"count\": 20,\n  \"before\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/messages",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "messages"]
+						},
+						"description": "Busca mensagens de uma newsletter.\n\n**Campos:**\n- `newsletterJid` (obrigatório): JID do newsletter\n- `count`: Quantidade de mensagens (padrão: 20)\n- `before`: ID da mensagem para paginação"
+					}
+				},
+				{
+					"name": "Convidar Admin ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newsletterJid\": \"120363012345678901@newsletter\",\n  \"number\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/newsletter/admin-invite",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "newsletter", "admin-invite"]
+						},
+						"description": "⚠️ **STUB** — NewsletterSendAdminInvite não existe no whatsmeow."
+					}
+				}
+			]
+		},
+		{
+			"name": "10. Call (Chamadas)",
+			"description": "Gerenciamento de chamadas. ⚠️ WhatsApp Web tem suporte limitado a chamadas.",
+			"item": [
+				{
+					"name": "Rejeitar Chamada ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"callId\": \"call-id-aqui\",\n  \"callFrom\": \"5511999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/call/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "call", "reject"]
+						},
+						"description": "⚠️ **STUB** — Rejeição de chamadas feita via eventos."
+					}
+				},
+				{
+					"name": "Iniciar Chamada ⚠️ stub",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"number\": \"5511999999999\",\n  \"isVideo\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/connections/{{instance}}/call/offer",
+							"host": ["{{baseUrl}}"],
+							"path": ["v1", "connections", "{{instance}}", "call", "offer"]
+						},
+						"description": "⚠️ **STUB** — Chamadas de saída não suportadas via WhatsApp Web."
+					}
+				}
+			]
+		}
+	]
+}

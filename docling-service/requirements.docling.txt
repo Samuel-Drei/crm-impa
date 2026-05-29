@@ -1,0 +1,3 @@
+# Addon pesado (OCR + layout analysis para PDFs complexos)
+# Instalar apenas quando precisar de OCR em PDFs escaneados
+docling>=2.31.0

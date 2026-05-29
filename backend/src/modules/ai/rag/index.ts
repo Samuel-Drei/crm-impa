@@ -1,0 +1,17 @@
+export { getQdrantClient, ensureCollection, getCollectionName, upsertChunks, searchSimilar, deleteByFilter, checkQdrantHealth } from './qdrant.client.js'
+export { embedTexts, embedQuery, estimateTokens } from './embedding.service.js'
+export { splitText, cleanText, htmlToCleanText, splitElements } from './text-splitter.js'
+export { scrapeUrl, crawlWebsite, extractFileContent } from './web-crawler.js'
+export { fetchYouTubeTranscript, createYouTubeChunks, extractVideoId, groupSnippetsIntoSegments } from './youtube-transcript.js'
+export { retrieveForAgent } from './retrieval.service.js'
+export { processSource, deleteSourceData } from './ingestion.pipeline.js'
+export { registerKnowledgeRoutes } from './knowledge.routes.js'
+// Novos módulos
+export { htmlToMarkdown, htmlToPlainText, extractCanonicalUrl, extractTitle, extractMetaDescription, detectLanguage, extractPublishedDate } from './content-cleaner.js'
+export { discoverSitemap, filterByLastmod, generateSitemapHash } from './sitemap.parser.js'
+export { normalizeUrl, urlFingerprint, isValidCrawlUrl, extractDomain, resolveUrl, cleanUrl, matchGlob, UrlDeduplicator } from './url-utils.js'
+// Document processing (Docling + local fallback)
+export { parseDocument, isDoclingAvailable } from './document-parser.js'
+export { partitionMarkdown, partitionPlainText, elementsToMarkdown, groupBySection, fromDoclingResponse } from './document-elements.js'
+export type { DocumentElement, ParsedDocument, DocumentSection, DoclingParseResponse } from './document-elements.js'
+export type { StructuredChunk } from './text-splitter.js'

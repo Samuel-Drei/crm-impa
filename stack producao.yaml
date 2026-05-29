@@ -1,0 +1,215 @@
+version: "3.7"
+
+## ============================================================ ##
+##                    CRM IMPA — STACK PESSOAL                  ##
+## ============================================================ ##
+## Stack 100% isolada da de testes/produção.                    ##
+## Volumes são criados automaticamente pelo Swarm (sem external)##
+## Eles aparecerão como: impa_pessoal_<nome_do_volume>          ##
+## ============================================================ ##
+
+services:
+
+## --------------------------- BACKEND --------------------------- ##
+
+  crm_pessoal_backend:
+    image: impa365/crm-impa-backend:latest
+
+    volumes:
+      - crm_pessoal_sessions:/app/sessions
+      - crm_pessoal_uploads:/app/uploads
+      - crm_pessoal_ai_workspace:/app/ai-workspace
+
+    networks:
+      - ImpaServer
+
+    environment:
+      ## ⚙️ Configurações Gerais
+      - NODE_ENV=production
+      - PORT=3333
+      - FRONTEND_URL=https://impacrm.impa365.com
+      - BACKEND_URL=https://apiimpacrm.impa365.com
+      - YT_COOKIES_FILE=/app/uploads/yt-cookies.txt
+      - YT_PROXY_URL=http://xnwznmgq:i0lgc0lvltbs@31.59.20.176:6754
+
+      
+      ## 🗄️ Banco de Dados (Postgres dedicado nesta stack)
+      - DATABASE_URL=postgresql://postgres:65c5cd7768491c61bad1d82dc788336e@postgres:5432/crm_pessoal_db?schema=public
+
+      ## 🔴 Redis dedicado
+      - REDIS_HOST=crm_pessoal_redis
+      - REDIS_PORT=6379
+
+      ## 🔐 Autenticação JWT (gerado via CSPRNG)
+      - JWT_SECRET=8e2c389a33ecf8c34186ff6f464939fc4f2a19fe08f8194bb9e12c3131d1e261
+      - JWT_EXPIRES_IN=7d
+
+      ## 🔒 Encriptação AES-256-GCM (gerado via CSPRNG — NUNCA mudar depois sem migrar dados!)
+      - ENCRYPTION_KEK=40c460c76206b3a444df9513343b5582e0057a683d8de9e57fb1a9d02afa5406
+
+      ## 📱 Sessões WhatsApp
+      - BAILEYS_SESSIONS_PATH=./sessions
+
+      ## 🤖 Evolution GO (reaproveitando — troque se quiser instância separada)
+      - EVO_GO_API_URL=https://evogo.impa365.com
+      - EVO_GO_GLOBAL_API_KEY=dfsfs44S4d48sd7gad7g8A85s4f5s58cc7f45f
+
+      ## 🧠 Provedores de IA — COLOQUE SUAS KEYS PESSOAIS AQUI
+      - OPENAI_API_KEY=COLOQUE_SUA_OPENAI_KEY
+      - ANTHROPIC_API_KEY=COLOQUE_SUA_ANTHROPIC_KEY
+      - GEMINI_API_KEY=COLOQUE_SUA_GEMINI_KEY
+
+      ## 🔍 Qdrant dedicado
+      - QDRANT_URL=http://crm_pessoal_qdrant:6333
+      - QDRANT_API_KEY=af7b371756ea363298e947531353efb5c0021c3de0934de7ff7ddf343f77925b
+
+      ## 📄 Docling dedicado
+      - DOCLING_SERVICE_URL=http://crm_pessoal_docling:8000
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.crm_pessoal_backend.rule=Host(`apiimpacrm.impa365.com`)
+        - traefik.http.routers.crm_pessoal_backend.entrypoints=websecure
+        - traefik.http.routers.crm_pessoal_backend.priority=1
+        - traefik.http.routers.crm_pessoal_backend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.crm_pessoal_backend.service=crm_pessoal_backend
+        - traefik.http.services.crm_pessoal_backend.loadbalancer.server.port=3333
+        - traefik.http.services.crm_pessoal_backend.loadbalancer.passHostHeader=true
+
+## --------------------------- FRONTEND --------------------------- ##
+
+  crm_pessoal_frontend:
+    image: impa365/crm-impa-frontend:latest
+
+    environment:
+      - BACKEND_HOST=crm_pessoal_backend
+      - BACKEND_PORT=3333
+
+    networks:
+      - ImpaServer
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.crm_pessoal_frontend.rule=Host(`impacrm.impa365.com`)
+        - traefik.http.routers.crm_pessoal_frontend.entrypoints=websecure
+        - traefik.http.routers.crm_pessoal_frontend.priority=1
+        - traefik.http.routers.crm_pessoal_frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.crm_pessoal_frontend.service=crm_pessoal_frontend
+        - traefik.http.services.crm_pessoal_frontend.loadbalancer.server.port=80
+        - traefik.http.services.crm_pessoal_frontend.loadbalancer.passHostHeader=true
+
+## --------------------------- DOCLING --------------------------- ##
+
+  crm_pessoal_docling:
+    image: impa365/crm-impa-docling:latest
+
+    networks:
+      - ImpaServer
+
+    environment:
+      - WORKERS=2
+      - MAX_FILE_SIZE_MB=100
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+
+## ----- POSTGRES: reaproveita o `postgres` existente (apenas DB diferente: crm_pessoal_db) ----- ##
+## Antes do primeiro deploy, criar o database:                                                  ##
+##   docker exec -it $(docker ps -qf name=postgres) psql -U postgres -c "CREATE DATABASE crm_pessoal_db;" ##
+
+## --------------------------- REDIS --------------------------- ##
+
+  crm_pessoal_redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--port", "6379"]
+
+    volumes:
+      - crm_pessoal_redis:/data
+
+    networks:
+      - ImpaServer
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+## --------------------------- QDRANT --------------------------- ##
+
+  crm_pessoal_qdrant:
+    image: qdrant/qdrant:latest
+
+    volumes:
+      - crm_pessoal_qdrant:/qdrant/storage
+
+    networks:
+      - ImpaServer
+
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__SERVICE__API_KEY=af7b371756ea363298e947531353efb5c0021c3de0934de7ff7ddf343f77925b
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+
+## --------------------------- VOLUMES --------------------------- ##
+
+volumes:
+  crm_pessoal_sessions:
+    external: true
+    name: crm_pessoal_sessions
+  crm_pessoal_uploads:
+    external: true
+    name: crm_pessoal_uploads
+  crm_pessoal_ai_workspace:
+    external: true
+    name: crm_pessoal_ai_workspace
+  crm_pessoal_redis:
+    external: true
+    name: crm_pessoal_redis
+  crm_pessoal_qdrant:
+    external: true
+    name: crm_pessoal_qdrant
+
+networks:
+  ImpaServer:
+    external: true
+    name: ImpaServer

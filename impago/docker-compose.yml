@@ -1,0 +1,50 @@
+services:
+  impago:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: impago
+    restart: unless-stopped
+    ports:
+      - "${IMPAGO_PORT:-8080}:8080"
+    environment:
+      IMPAGO_PORT: "8080"
+      IMPAGO_MASTER_KEY: "${IMPAGO_MASTER_KEY}"
+      IMPAGO_DATABASE_URL: "postgres://impago:impago@impago-db:5432/impago?sslmode=disable"
+      IMPAGO_LOG_LEVEL: "info"
+      IMPAGO_LOG_PRETTY: "true"
+      IMPAGO_CORS_ORIGINS: "*"
+      IMPAGO_WEBHOOK_GLOBAL_URL: "${IMPAGO_WEBHOOK_GLOBAL_URL:-}"
+      IMPAGO_WEBHOOK_SECRET: "${IMPAGO_WEBHOOK_SECRET:-}"
+      IMPAGO_ENVIRONMENT: "production"
+    depends_on:
+      impago-db:
+        condition: service_healthy
+    networks:
+      - impago-net
+
+  impago-db:
+    image: postgres:16-alpine
+    container_name: impago-db
+    restart: unless-stopped
+    volumes:
+      - impago-pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: impago
+      POSTGRES_PASSWORD: impago
+      POSTGRES_DB: impago
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U impago"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - impago-net
+
+volumes:
+  impago-pgdata:
+    driver: local
+
+networks:
+  impago-net:
+    driver: bridge

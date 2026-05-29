@@ -1,0 +1,2 @@
+-- Add OWN_ONLY to DataScope enum
+ALTER TYPE "DataScope" ADD VALUE IF NOT EXISTS 'OWN_ONLY' AFTER 'OWN';
